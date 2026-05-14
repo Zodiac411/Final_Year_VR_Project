@@ -1,0 +1,57 @@
+﻿using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine;
+
+public class DetachableLimb : MonoBehaviour
+{
+    [SerializeField] private Transform ShrinkBone;
+
+    [SerializeField] private GameObject ReplaceGrabbableWith;
+    [SerializeField] private GameObject EnableOnDetach;
+
+    public void DoDismemberment(Grabber grabbedBy)
+    {
+        if (ReplaceGrabbableWith && grabbedBy != null)
+        {
+            if (grabbedBy.HeldGrabbable)
+            {
+                grabbedBy.HeldGrabbable.DropItem(grabbedBy, true, true);
+            }
+
+            if (ReplaceGrabbableWith)
+            {
+                ReplaceGrabbableWith.SetActive(true);
+                Grabbable g = ReplaceGrabbableWith.GetComponent<Grabbable>();
+                g.transform.parent = null;
+                g.transform.localScale = Vector3.one;
+                g.UpdateOriginalParent();
+
+                grabbedBy.GrabGrabbable(g);
+            }
+        }
+
+        if (ShrinkBone)
+        {
+            ShrinkBone.localScale = Vector3.zero;
+            ShrinkBone.gameObject.SetActive(false);
+        }
+
+        if (EnableOnDetach)
+        {
+            EnableOnDetach.SetActive(true);
+        }
+    }
+
+    public void ReverseDismemberment()
+    {
+        if (ShrinkBone)
+        {
+            ShrinkBone.gameObject.SetActive(true);
+            ShrinkBone.localScale = Vector3.one;
+        }
+
+        if (EnableOnDetach)
+        {
+            EnableOnDetach.SetActive(false);
+        }
+    }
+}
