@@ -8,6 +8,8 @@ public class WeaponSlot:MonoBehaviour
 {
     [SerializeField]
     private List<WeaponEntry> weaponEntries;
+    private readonly IWeaponSelectionStrategy weaponSelectionStrategy = new RandomWeaponSelectionStrategy();
+    private readonly IWeaponSpawnFactory weaponSpawnFactory = new DefaultWeaponSpawnFactory();
     public Dictionary<string, WeaponDetails> weaponDict = new Dictionary<string, WeaponDetails>();
     public string selectedWeaponName;
     [HideInInspector] 
@@ -57,13 +59,23 @@ public class WeaponSlot:MonoBehaviour
     }
     public void RandomizeWeapon()
     {
-        int randomIndex = Random.Range(0, weaponEntries.Count);
-        WeaponEntry selectedEntry = weaponEntries[randomIndex];
+        WeaponEntry selectedEntry = weaponSelectionStrategy.Select(weaponEntries);
+
+        if (selectedEntry == null)
+        {
+            Debug.LogError("No weapon entries are available to select from.");
+            return;
+        }
 
         selectedWeaponName = selectedEntry.weaponName;
         selectedWeaponDetails = selectedEntry.weaponDetails;
 
-       
+        if (selectedWeaponDetails == null || selectedWeaponDetails.weaponMesh == null)
+        {
+            Debug.LogError("Selected weapon details are missing mesh data.");
+            return;
+        }
+
         HideWeapons();
         selectedWeaponDetails.weaponMesh.SetActive(true);
 
@@ -104,25 +116,25 @@ public class WeaponSlot:MonoBehaviour
     {
         yield return new WaitForSeconds(1); 
 
-        
-        GameObject spawnedWeapon = Instantiate(prefab, spawner.transform.position, spawner.transform.rotation);
+        weaponSpawnFactory.Spawn(prefab, spawner.transform.position, spawner.transform.rotation, spawner.transform);
+    }
+}
 
-        
-        spawnedWeapon.transform.SetParent(spawner.transform);
+public interface IWeaponSelectionStrategy
+{
+    WeaponEntry Select(IReadOnlyList<WeaponEntry> weaponEntries);
+}
 
-        
-        spawnedWeapon.transform.SetParent(null);
-
-        
-        Rigidbody rb = spawnedWeapon.GetComponent<Rigidbody>();
-        if (rb != null)
+public sealed class RandomWeaponSelectionStrategy : IWeaponSelectionStrategy
+{
+    public WeaponEntry Select(IReadOnlyList<WeaponEntry> weaponEntries)
+    {
+        if (weaponEntries == null || weaponEntries.Count == 0)
         {
-            
-            Vector3 forceDirection = -spawner.transform.up; 
-            float forceMagnitude = 10.0f; 
-            rb.isKinematic = false; 
-            rb.AddForce(forceDirection * forceMagnitude, ForceMode.VelocityChange); 
+            return null;
         }
+
+        return weaponEntries[Random.Range(0, weaponEntries.Count)];
     }
 }
 
@@ -138,7 +150,7 @@ public class WeaponDetails
     {
         weaponMesh = mesh;
         price = weaponPrice;
-        prefab = weaponPrefab;
+        weaponPrefab = prefab;
     }
 }
 

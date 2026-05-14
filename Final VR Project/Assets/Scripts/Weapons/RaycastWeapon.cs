@@ -155,25 +155,17 @@ public class RaycastWeapon : GrabbableEvents
 
     void checkSlideInput()
     {
-        for (int x = 0; x < ReleaseSlideInput.Count; x++)
+        if (IsAnyInputBindingPressed(ReleaseSlideInput))
         {
-            if (XRInput.Instance.GetGrabbedControllerBinding(ReleaseSlideInput[x], thisGrabber.HandSide))
-            {
-                UnlockSlide();
-                break;
-            }
+            UnlockSlide();
         }
     }
 
     void checkEjectInput()
     {
-        for (int x = 0; x < EjectInput.Count; x++)
+        if (IsAnyInputBindingPressed(EjectInput))
         {
-            if (XRInput.Instance.GetGrabbedControllerBinding(EjectInput[x], thisGrabber.HandSide))
-            {
-                EjectMagazine();
-                break;
-            }
+            EjectMagazine();
         }
     }
 
@@ -181,15 +173,24 @@ public class RaycastWeapon : GrabbableEvents
     {
         if (ReloadMethod == ReloadType.InternalAmmo)
         {
-            for (int x = 0; x < ReloadInput.Count; x++)
+            if (IsAnyInputBindingPressed(ReloadInput))
             {
-                if (XRInput.Instance.GetGrabbedControllerBinding(EjectInput[x], thisGrabber.HandSide))
-                {
-                    Reload();
-                    break;
-                }
+                Reload();
             }
         }
+    }
+
+    private bool IsAnyInputBindingPressed(List<GrabbedControllerBinding> bindings)
+    {
+        for (int x = 0; x < bindings.Count; x++)
+        {
+            if (XRInput.Instance.GetGrabbedControllerBinding(bindings[x], thisGrabber.HandSide))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public virtual void UnlockSlide()

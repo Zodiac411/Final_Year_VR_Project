@@ -1,12 +1,14 @@
-﻿using UnityEngine.SceneManagement;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class SceneLoader : MonoBehaviour
 {
     [SerializeField] private LoadSceneMode loadSceneMode = LoadSceneMode.Single;
 
-    public bool UseSceenFader = true;
+    [FormerlySerializedAs("UseSceenFader")]
+    public bool UseScreenFader = true;
 
     public float ScreenFadeTime = 0.5f;
 
@@ -18,9 +20,9 @@ public class SceneLoader : MonoBehaviour
     {
         _loadSceneName = SceneName;
 
-        if (UseSceenFader)
+        if (UseScreenFader)
         {
-            StartCoroutine("FadeThenLoadScene");
+            StartCoroutine(FadeThenLoadScene());
         }
         else
         {
@@ -31,7 +33,7 @@ public class SceneLoader : MonoBehaviour
     public IEnumerator FadeThenLoadScene()
     {
 
-        if (UseSceenFader)
+        if (UseScreenFader)
         {
             if (sf == null)
             {
